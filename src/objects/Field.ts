@@ -5,7 +5,9 @@ export class Field {
     private snake: Snake;
     private food: Food;
 
-    private field: number[][];
+    static readonly symbol: number = 0;
+
+    private field: number[][] = [[]];
 
     constructor(
         private readonly width: number,
@@ -13,20 +15,35 @@ export class Field {
     ) {
         this.snake = new Snake(width, height);
         this.food = new Food(width, height);
-        this.field = this.generate();
+        this.generate();
     }
 
-    private generate() {
-        const widthArr = Array.from({length: this.width}).fill(0);
+    generate() {
+        const widthArr = Array.from({length: this.width}).fill(Field.symbol);
 
-        const field = Array.from({length: this.height}).map(() => widthArr) as number[][];
+        this.field = Array.from({length: this.height}).map(() => [...widthArr]) as number[][];
 
-        const heightPivot = Math.ceil((this.height / 2) - 1);
-        const lengthPivot = Math.ceil((this.width / 2) - 1);
+        this.generateSnake();
+        this.generateFood();
 
-        // field[heightPivot][lengthPivot] =
+        return this.field;
+    }
 
-        return []
+    private generateSnake() {
+        const [snakeX, snakeY] = this.snake.generate();
+
+        this.field[snakeY][snakeX] = Snake.symbol;
+    }
+
+    private generateFood() {
+        const [foodX, foodY] = this.food.generate();
+
+        if (this.field[foodY][foodX] === Field.symbol) {
+            this.field[foodY][foodX] = Food.symbol;
+            return;
+        }
+
+        this.generateFood();
     }
 
     update(): number[][] {

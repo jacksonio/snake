@@ -1,6 +1,8 @@
 import {EDirection, IGenerate, TObjectBlock} from '../types.ts';
 
 export class Snake implements IGenerate<TObjectBlock> {
+    static readonly symbol: number = 1;
+
     private blocks: TObjectBlock[] = [];
     private direction: EDirection = EDirection.RIGHT;
 

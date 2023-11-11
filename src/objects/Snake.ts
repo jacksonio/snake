@@ -9,7 +9,7 @@ export class Snake implements IGenerate<TObjectBlock> {
     constructor(private readonly fieldWidth: number, private readonly fieldHeight: number) {
     }
 
-    generate(): TObjectBlock {
+    public generate(): TObjectBlock {
         const heightPivot = Math.ceil((this.fieldHeight / 2) - 1);
         const lengthPivot = Math.ceil((this.fieldWidth / 2) - 1);
 
@@ -20,7 +20,7 @@ export class Snake implements IGenerate<TObjectBlock> {
         return snakeHead;
     }
 
-    move(): TObjectBlock[] {
+    public move(): TObjectBlock[] {
         let prevBlock: TObjectBlock | null = null;
 
         for (let i = 0; i < this.blocks.length; i++) {
@@ -58,15 +58,19 @@ export class Snake implements IGenerate<TObjectBlock> {
         return this.blocks;
     }
 
-    getDirection(): EDirection {
+    public getDirection(): EDirection {
         return this.direction;
     }
 
-    setDirection(direction: EDirection): void {
+    public setDirection(direction: EDirection): void {
         this.direction = direction;
     }
 
-    grove(): TObjectBlock[] {
+    public getBlocks(): TObjectBlock[] {
+        return this.blocks;
+    }
+
+    public grove(): TObjectBlock[] {
         if (this.blocks.length === 1) {
             const head: TObjectBlock = this.blocks[0];
 

@@ -2,12 +2,13 @@ import {Food} from './Food.ts';
 import {Snake} from './Snake.ts';
 
 export class Field {
-    private snake: Snake;
-    private food: Food;
-
     static readonly symbol: number = 0;
 
+    private snake: Snake;
+    private food: Food;
     private field: number[][] = [[]];
+
+    public isCollapse: boolean = false;
 
     constructor(
         private readonly width: number,
@@ -16,17 +17,6 @@ export class Field {
         this.snake = new Snake(width, height);
         this.food = new Food(width, height);
         this.generate();
-    }
-
-    generate() {
-        const widthArr = Array.from({length: this.width}).fill(Field.symbol);
-
-        this.field = Array.from({length: this.height}).map(() => [...widthArr]) as number[][];
-
-        this.generateSnake();
-        this.generateFood();
-
-        return this.field;
     }
 
     private generateSnake() {
@@ -46,13 +36,66 @@ export class Field {
         this.generateFood();
     }
 
-    update(): number[][] {
-        // 1) get a snake
-        // 2) get it parts
-        // 3) get a food location
-        // 4) get the snake direction and based on move it parts to the way of moving
-        // 5) compare the food location with snake parts and if one of them matches -> add a new part to the snake tail
-        // 6) re-generate food location
-        return [];
+    private clearField() {
+        this.snake.getBlocks().map(([snakeBlockX, snakeBlockY]) => {
+            this.field[snakeBlockX][snakeBlockY] = Field.symbol;
+        });
+
+        const [foodLocationX, foodLocationY] = this.food.getLocation();
+        this.field[foodLocationX][foodLocationY] = Field.symbol;
+    }
+
+    private updateSnakeOnField() {
+        this.snake.getBlocks().map(([snakeBlockX, snakeBlockY]) => {
+            this.field[snakeBlockX][snakeBlockY] = Snake.symbol;
+        });
+    }
+
+    public generate(): number[][] {
+        const widthArr = Array.from({length: this.width}).fill(Field.symbol);
+
+        this.field = Array.from({length: this.height}).map(() => [...widthArr]) as number[][];
+
+        this.generateSnake();
+        this.generateFood();
+
+        return this.field;
+    }
+
+    public update(): number[][] {
+        this.clearField();
+
+        const snakeBlocks = this.snake.move();
+        const [snakeHeadBlockX, snakeHeadBlockY] = snakeBlocks[0];
+
+        const [foodLocationX, foodLocationY] = this.food.getLocation();
+
+        if (snakeHeadBlockX === foodLocationX && snakeHeadBlockY === foodLocationY) {
+            this.snake.grove();
+            this.generateFood();
+        } else {
+            const [foodLocationX, foodLocationY] = this.food.getLocation();
+            this.field[foodLocationX][foodLocationY] = Food.symbol;
+        }
+
+        this.updateSnakeOnField();
+
+        return this.field;
+    }
+
+    public checkCollapse(): boolean {
+        let isCollapse = false;
+
+        this.snake.getBlocks().reduce((resHash, [snakeBlockX, snakeBlockY]) => {
+
+            const coordsKey = `${snakeBlockX}${snakeBlockY}`;
+
+            if (resHash[coordsKey]) isCollapse = true;
+            else resHash[coordsKey] = true;
+
+            return resHash;
+        }, {} as Record<string, boolean>);
+
+        return isCollapse;
     }
 }

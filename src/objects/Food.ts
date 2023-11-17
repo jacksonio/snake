@@ -1,4 +1,4 @@
-import {IGenerate, TObjectBlock} from '../types.ts';
+import {IGenerate, TObjectBlock} from './types.ts';
 
 export class Food implements IGenerate<TObjectBlock> {
     static readonly symbol: number = 2;

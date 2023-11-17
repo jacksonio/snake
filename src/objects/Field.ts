@@ -8,8 +8,6 @@ export class Field {
     private food: Food;
     private field: number[][] = [[]];
 
-    public isCollapse: boolean = false;
-
     constructor(
         private readonly width: number,
         private readonly height: number
@@ -19,17 +17,27 @@ export class Field {
         this.generate();
     }
 
+    private clone() {
+        return structuredClone(this.field);
+    }
+
     private generateSnake() {
         const [snakeX, snakeY] = this.snake.generate();
 
-        this.field[snakeY][snakeX] = Snake.symbol;
+        const clone = this.clone();
+        clone[snakeY][snakeX] = Snake.symbol
+
+        this.field = clone;
     }
 
     private generateFood() {
         const [foodX, foodY] = this.food.generate();
 
         if (this.field[foodY][foodX] === Field.symbol) {
-            this.field[foodY][foodX] = Food.symbol;
+            const clone = this.clone();
+            clone[foodY][foodX] = Food.symbol;
+            this.field = clone;
+
             return;
         }
 
@@ -37,18 +45,26 @@ export class Field {
     }
 
     private clearField() {
+        const clone = this.clone();
+
         this.snake.getBlocks().map(([snakeBlockX, snakeBlockY]) => {
-            this.field[snakeBlockX][snakeBlockY] = Field.symbol;
+            clone[snakeBlockY][snakeBlockX] = Field.symbol;
         });
 
         const [foodLocationX, foodLocationY] = this.food.getLocation();
-        this.field[foodLocationX][foodLocationY] = Field.symbol;
+        clone[foodLocationY][foodLocationX] = Field.symbol;
+
+        this.field = clone;
     }
 
     private updateSnakeOnField() {
+        const clone = this.clone();
+
         this.snake.getBlocks().map(([snakeBlockX, snakeBlockY]) => {
-            this.field[snakeBlockX][snakeBlockY] = Snake.symbol;
+            clone[snakeBlockY][snakeBlockX] = Snake.symbol;
         });
+
+        this.field = clone;
     }
 
     public generate(): number[][] {
@@ -66,6 +82,7 @@ export class Field {
         this.clearField();
 
         const snakeBlocks = this.snake.move();
+
         const [snakeHeadBlockX, snakeHeadBlockY] = snakeBlocks[0];
 
         const [foodLocationX, foodLocationY] = this.food.getLocation();
@@ -74,8 +91,12 @@ export class Field {
             this.snake.grove();
             this.generateFood();
         } else {
+            const clone = this.clone();
+
             const [foodLocationX, foodLocationY] = this.food.getLocation();
-            this.field[foodLocationX][foodLocationY] = Food.symbol;
+            clone[foodLocationY][foodLocationX] = Food.symbol;
+
+            this.field = clone;
         }
 
         this.updateSnakeOnField();
@@ -88,7 +109,7 @@ export class Field {
 
         this.snake.getBlocks().reduce((resHash, [snakeBlockX, snakeBlockY]) => {
 
-            const coordsKey = `${snakeBlockX}${snakeBlockY}`;
+            const coordsKey = `${snakeBlockY}${snakeBlockX}`;
 
             if (resHash[coordsKey]) isCollapse = true;
             else resHash[coordsKey] = true;

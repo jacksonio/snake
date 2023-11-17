@@ -1,4 +1,4 @@
-import {EDirection, IGenerate, TObjectBlock} from '../types.ts';
+import {EDirection, IGenerate, TObjectBlock} from './types.ts';
 
 export class Snake implements IGenerate<TObjectBlock> {
     static readonly symbol: number = 1;
@@ -15,7 +15,7 @@ export class Snake implements IGenerate<TObjectBlock> {
 
         const snakeHead = [lengthPivot, heightPivot] as TObjectBlock;
 
-        this.blocks.push(snakeHead);
+        this.blocks = [snakeHead];
 
         return snakeHead;
     }

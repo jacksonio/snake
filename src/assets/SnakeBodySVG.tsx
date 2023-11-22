@@ -10,7 +10,7 @@ export const SnakeBodySVG = () => {
             fill={'blue'}
         >
             <g transform="translate(0.000000,1280.000000) scale(0.100000,-0.100000)"
-               fill="#6CBB3C" stroke="none">
+               fill="#000" stroke="none">
                 <path d="M0 12255 l0 -545 33 0 c83 0 121 32 563 472 438 436 482 488 492 573
 l5 45 -547 0 -546 0 0 -545z"/>
                 <path d="M1472 12755 c10 -85 54 -137 492 -573 470 -468 475 -472 596 -472

@@ -1,23 +1,21 @@
-import {IGenerate, TObjectBlock} from './types.ts';
+import {IGenerate, IObjectBlock} from './types.ts';
 
-export class Food implements IGenerate<TObjectBlock> {
-    static readonly symbol: number = 2;
-
-    private location: TObjectBlock = [0, 0];
+export class Food implements IGenerate<IObjectBlock> {
+    private location: IObjectBlock = {x: 0, y: 0, id: crypto.randomUUID()};
 
     constructor(private readonly fieldWidth: number, private readonly fieldHeight: number) {
     }
 
-    public generate(): TObjectBlock {
+    public generate(): IObjectBlock {
         const x = Math.floor(Math.random() * this.fieldWidth);
         const y = Math.floor(Math.random() * this.fieldHeight);
 
-        this.location = [x, y] as TObjectBlock;
+        this.location = {x, y, id: crypto.randomUUID()};
 
         return this.location;
     }
 
-    public getLocation(): TObjectBlock {
+    public getLocation(): IObjectBlock {
         return this.location;
     }
 }

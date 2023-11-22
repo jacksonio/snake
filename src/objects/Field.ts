@@ -1,12 +1,11 @@
 import {Food} from './Food.ts';
 import {Snake} from './Snake.ts';
+import {EDirection, EObjectType, TObjectFieldBlock} from './types.ts';
 
 export class Field {
-    static readonly symbol: number = 0;
-
     private snake: Snake;
     private food: Food;
-    private field: number[][] = [[]];
+    private field: TObjectFieldBlock[][] = [[]];
 
     constructor(
         private readonly width: number,
@@ -22,20 +21,22 @@ export class Field {
     }
 
     private generateSnake() {
-        const [snakeX, snakeY] = this.snake.generate();
+        const snakeHead = this.snake.generate();
+        const {x: snakeX, y: snakeY, id, blockType} = snakeHead;
 
         const clone = this.clone();
-        clone[snakeY][snakeX] = Snake.symbol
+        clone[snakeY][snakeX] = {id, blockType, objectType: EObjectType.SNAKE} as TObjectFieldBlock;
 
         this.field = clone;
     }
 
     private generateFood() {
-        const [foodX, foodY] = this.food.generate();
+        const food = this.food.generate();
+        const {x: foodX, y: foodY, id} = food;
 
-        if (this.field[foodY][foodX] === Field.symbol) {
+        if ((this.field[foodY][foodX] as TObjectFieldBlock).objectType === EObjectType.FIELD) {
             const clone = this.clone();
-            clone[foodY][foodX] = Food.symbol;
+            clone[foodY][foodX] = {id, objectType: EObjectType.FOOD};
             this.field = clone;
 
             return;
@@ -47,12 +48,12 @@ export class Field {
     private clearField() {
         const clone = this.clone();
 
-        this.snake.getBlocks().map(([snakeBlockX, snakeBlockY]) => {
-            clone[snakeBlockY][snakeBlockX] = Field.symbol;
+        this.snake.getBlocks().map(({x: snakeBlockX, y: snakeBlockY}) => {
+            clone[snakeBlockY][snakeBlockX] = {objectType: EObjectType.FIELD, id: crypto.randomUUID()};
         });
 
-        const [foodLocationX, foodLocationY] = this.food.getLocation();
-        clone[foodLocationY][foodLocationX] = Field.symbol;
+        const {x: foodLocationX, y: foodLocationY} = this.food.getLocation();
+        clone[foodLocationY][foodLocationX] = {objectType: EObjectType.FIELD, id: crypto.randomUUID()};
 
         this.field = clone;
     }
@@ -60,17 +61,20 @@ export class Field {
     private updateSnakeOnField() {
         const clone = this.clone();
 
-        this.snake.getBlocks().map(([snakeBlockX, snakeBlockY]) => {
-            clone[snakeBlockY][snakeBlockX] = Snake.symbol;
+        this.snake.getBlocks().map(({x, y, blockType, id}) => {
+            clone[y][x] = {blockType, objectType: EObjectType.SNAKE, id};
         });
 
         this.field = clone;
     }
 
-    public generate(): number[][] {
-        const widthArr = Array.from({length: this.width}).fill(Field.symbol);
+    public generate(): TObjectFieldBlock[][] {
+        const widthArr: TObjectFieldBlock[] = Array.from<TObjectFieldBlock>({length: this.width}).map(() => ({
+            objectType: EObjectType.FIELD,
+            id: crypto.randomUUID()
+        }));
 
-        this.field = Array.from({length: this.height}).map(() => [...widthArr]) as number[][];
+        this.field = Array.from({length: this.height}).map(() => [...widthArr]);
 
         this.generateSnake();
         this.generateFood();
@@ -78,28 +82,32 @@ export class Field {
         return this.field;
     }
 
-    public update(): number[][] {
+    public setSnakeDirection(direction: EDirection) {
+        this.snake.setDirection(direction);
+    }
+
+    public update(): TObjectFieldBlock[][] {
         this.clearField();
 
         const snakeBlocks = this.snake.move();
 
-        const [snakeHeadBlockX, snakeHeadBlockY] = snakeBlocks[0];
+        const {x: snakeHeadBlockX, y: snakeHeadBlockY} = snakeBlocks[0];
 
-        const [foodLocationX, foodLocationY] = this.food.getLocation();
+        const {x: foodLocationX, y: foodLocationY, id} = this.food.getLocation();
 
         if (snakeHeadBlockX === foodLocationX && snakeHeadBlockY === foodLocationY) {
             this.snake.grove();
+            this.updateSnakeOnField();
             this.generateFood();
         } else {
             const clone = this.clone();
 
-            const [foodLocationX, foodLocationY] = this.food.getLocation();
-            clone[foodLocationY][foodLocationX] = Food.symbol;
+            clone[foodLocationY][foodLocationX] = {id, objectType: EObjectType.FOOD};
 
             this.field = clone;
-        }
 
-        this.updateSnakeOnField();
+            this.updateSnakeOnField();
+        }
 
         return this.field;
     }
@@ -107,7 +115,7 @@ export class Field {
     public checkCollapse(): boolean {
         let isCollapse = false;
 
-        this.snake.getBlocks().reduce((resHash, [snakeBlockX, snakeBlockY]) => {
+        this.snake.getBlocks().reduce((resHash, {x: snakeBlockX, y: snakeBlockY}) => {
 
             const coordsKey = `${snakeBlockY}${snakeBlockX}`;
 

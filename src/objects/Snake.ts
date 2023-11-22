@@ -1,27 +1,31 @@
-import {EDirection, IGenerate, TObjectBlock} from './types.ts';
+import {EDirection, IGenerate, IObjectSnakeBlock} from './types.ts';
 
-export class Snake implements IGenerate<TObjectBlock> {
-    static readonly symbol: number = 1;
-
-    private blocks: TObjectBlock[] = [];
-    private direction: EDirection = EDirection.RIGHT;
+export class Snake implements IGenerate<IObjectSnakeBlock> {
+    private blocks: IObjectSnakeBlock[] = [];
+    private direction: EDirection = EDirection.BOTTOM;
 
     constructor(private readonly fieldWidth: number, private readonly fieldHeight: number) {
     }
 
-    public generate(): TObjectBlock {
+    public generate(): IObjectSnakeBlock {
         const heightPivot = Math.ceil((this.fieldHeight / 2) - 1);
         const lengthPivot = Math.ceil((this.fieldWidth / 2) - 1);
 
-        const snakeHead = [lengthPivot, heightPivot] as TObjectBlock;
+        const snakeHead: IObjectSnakeBlock = {
+            x: lengthPivot,
+            y: heightPivot,
+            blockType: 'head',
+            id: crypto.randomUUID(),
+        };
 
         this.blocks = [snakeHead];
 
         return snakeHead;
     }
 
-    public move(): TObjectBlock[] {
-        let prevBlock: TObjectBlock | null = null;
+    // TODO think about coordinates as now we have two blocks with same coords for a while.
+    public move(): IObjectSnakeBlock[] {
+        let prevBlock: IObjectSnakeBlock | null = null;
 
         for (let i = 0; i < this.blocks.length; i++) {
             const currentBlock = this.blocks[i];
@@ -29,13 +33,13 @@ export class Snake implements IGenerate<TObjectBlock> {
             if (prevBlock) {
                 const newPrev = currentBlock;
 
-                this.blocks[i] = prevBlock;
+                this.blocks[i] = {...currentBlock, x: prevBlock.x, y: prevBlock.y};
                 prevBlock = newPrev;
             } else {
                 prevBlock = currentBlock;
 
-                let xCoord = currentBlock[0];
-                let yCoord = currentBlock[1];
+                let xCoord = currentBlock.x;
+                let yCoord = currentBlock.y;
 
                 switch (this.direction) {
                     case EDirection.RIGHT:
@@ -51,80 +55,88 @@ export class Snake implements IGenerate<TObjectBlock> {
                         yCoord = yCoord === this.fieldHeight - 1 ? 0 : yCoord + 1;
                 }
 
-                this.blocks[i] = [xCoord, yCoord];
+                this.blocks[i] = {x: xCoord, y: yCoord, id: currentBlock.id, blockType: currentBlock.blockType};
             }
         }
 
         return this.blocks;
     }
 
-    public getDirection(): EDirection {
-        return this.direction;
-    }
-
     public setDirection(direction: EDirection): void {
+        if (this.direction === direction) return;
+
+        const oppositeHash = {
+            [EDirection.TOP]: EDirection.BOTTOM,
+            [EDirection.RIGHT]: EDirection.LEFT,
+            [EDirection.LEFT]: EDirection.RIGHT,
+            [EDirection.BOTTOM]: EDirection.TOP,
+        };
+
+        if (direction === oppositeHash[this.direction]) return;
+
         this.direction = direction;
     }
 
-    public getBlocks(): TObjectBlock[] {
+    public getBlocks(): IObjectSnakeBlock[] {
         return this.blocks;
     }
 
-    public grove(): TObjectBlock[] {
+    public grove(): IObjectSnakeBlock[] {
         if (this.blocks.length === 1) {
-            const head: TObjectBlock = this.blocks[0];
+            const head: IObjectSnakeBlock = this.blocks[0];
 
-            const newBlock: TObjectBlock = [0, 0];
+            const newBlock: IObjectSnakeBlock = {x: 0, y: 0, id: crypto.randomUUID(), blockType: 'body'};
 
             switch (this.direction) {
                 case EDirection.RIGHT:
-                    newBlock[1] = head[1];
-                    newBlock[0] = head[0] - 1;
+                    newBlock.y = head.y;
+                    newBlock.x = head.x - 1;
                     break;
                 case EDirection.LEFT:
-                    newBlock[1] = head[1];
-                    newBlock[0] = head[0] + 1;
+                    newBlock.y = head.y;
+                    newBlock.x = head.x + 1;
                     break;
                 case EDirection.TOP:
-                    newBlock[1] = head[1] + 1;
-                    newBlock[0] = head[0];
+                    newBlock.y = head.y + 1;
+                    newBlock.x = head.x;
                     break;
                 case EDirection.BOTTOM:
-                    newBlock[1] = head[1] - 1;
-                    newBlock[0] = head[0];
+                    newBlock.y = head.y - 1;
+                    newBlock.x = head.x;
             }
 
             this.blocks.push(newBlock);
         } else {
-            const [lastBlockX, lastBlockY] = this.blocks.at(-1)!;
-            const [preLastBlockX, preLastBlockY] = this.blocks.at(-2)!;
+            const {x: lastBlockX, y: lastBlockY} = this.blocks.at(-1)!;
 
-            const newBlock: TObjectBlock = [0, 0];
+            const {x: preLastBlockX, y: preLastBlockY} = this.blocks.at(-2)!;
+
+            const newBlock: IObjectSnakeBlock = {x: 0, y: 0, blockType: 'body', id: crypto.randomUUID()};
 
             // Горизонально
             if (lastBlockY === preLastBlockY) {
-                newBlock[1] = lastBlockY;
+                newBlock.y = lastBlockY;
 
                 if (lastBlockX > preLastBlockX) {
                     //[x+1, y]
-                    newBlock[0] = lastBlockX + 1;
+                    newBlock.x = lastBlockX + 1;
                 }
                 //[x-1, y]
-                newBlock[0] = lastBlockX - 1;
+                newBlock.x = lastBlockX - 1;
 
                 this.blocks.push(newBlock);
             }
 
             // Вертикально
             if (lastBlockX === preLastBlockX) {
-                newBlock[0] = lastBlockX;
+                newBlock.x = lastBlockX;
 
                 if (lastBlockY > preLastBlockY) {
                     //[x, y + 1]
-                    newBlock[1] = lastBlockY + 1;
+                    newBlock.y = lastBlockY + 1;
                 }
                 //[x, y - 1]
-                newBlock[1] = lastBlockY - 1;
+                newBlock.y = lastBlockY - 1;
 
                 this.blocks.push(newBlock);
             }

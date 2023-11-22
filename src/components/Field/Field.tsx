@@ -1,55 +1,45 @@
 import React, {FC, Fragment, useEffect, useState} from 'react';
 
-import {Field as FieldObject, Food, Snake} from '../../objects';
-import {FrogSvg, SnakeHeadSVG} from '../../assets';
+import {Field as FieldObject} from '../../objects';
 
-import {SCell, SFieldContainer, SFieldRow, SFieldWrapper, SFoodCell, SSnakeCell} from './styled.ts';
-
-function getCellByType(cellType: number) {
-    switch (cellType) {
-        case FieldObject.symbol:
-            return <SCell/>;
-        case Snake.symbol:
-            return (
-                <SCell>
-                    <SSnakeCell>
-                        <SnakeHeadSVG/>
-                    </SSnakeCell>
-                </SCell>
-            )
-        case Food.symbol:
-            return (
-                <SCell>
-                    <SFoodCell>
-                        <FrogSvg/>
-                    </SFoodCell>
-                </SCell>
-            )
-    }
-}
-
-enum EControlKeys {
-    W = 'w',
-    A = 'a',
-    S = 's',
-    D = 'd',
-}
+import {SFieldContainer, SFieldRow, SFieldWrapper} from './styled.ts';
+import {EControlKeys} from './types.ts';
+import {allowedKeys, hashMap} from './consts.ts';
+import {getCellByType} from './helpers.tsx';
 
 const field = new FieldObject(10, 10);
 
-const FieldComponent: FC = () => {
-    const [fieldCells, setFieldCells] = useState(field.generate());
+interface IFieldProps {
+    onSnakeCollapse: () => void;
+}
+
+const FieldComponent: FC<IFieldProps> = ({onSnakeCollapse}) => {
+    const [fieldCells, setFieldCells] = useState(() => field.generate());
 
     useEffect(() => {
-        setInterval(() => {
+        const intervalId = setInterval(() => {
             const updatedFieldCells = field.update();
 
+            // field.checkCollapse();
+            //
+            // if (field.checkCollapse()) onSnakeCollapse();
+
             setFieldCells(updatedFieldCells);
-        }, 1000);
-        // document.addEventListener('keydown', (e: KeyboardEvent) => {
-        //     if (![EControlKeys.W, EControlKeys.A, EControlKeys.S, EControlKeys.D].includes(e.key as EControlKeys)) return;
-        // })
-    }, []);
+        }, 2000);
+
+        const setDirectionHandler = (e: KeyboardEvent) => {
+            if (!allowedKeys.includes(e.key as EControlKeys)) return;
+
+            field.setSnakeDirection(hashMap[e.key as keyof typeof hashMap]);
+        };
+
+        document.addEventListener('keydown', setDirectionHandler);
+
+        return () => {
+            clearInterval(intervalId);
+            document.removeEventListener('keydown', setDirectionHandler);
+        }
+    }, [onSnakeCollapse]);
 
     return (
         <SFieldWrapper>
@@ -57,7 +47,7 @@ const FieldComponent: FC = () => {
                 {fieldCells.map((row, i) => {
                     return (
                         <SFieldRow key={i}>
-                            {row.map((cell) => <Fragment>{getCellByType(cell)}</Fragment>
+                            {row.map((cell) => <Fragment key={cell.id}>{getCellByType(cell)}</Fragment>
                             )}
                         </SFieldRow>
                     )

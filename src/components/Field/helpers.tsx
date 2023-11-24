@@ -1,7 +1,10 @@
-import {EObjectType, TObjectFieldBlock} from '../../objects/types.ts';
-import {FrogSvg, SnakeBodySVG, SnakeHeadSVG} from '../../assets';
-import {SCell, SFoodCell, SSnakeCell} from './styled.ts';
 import React from 'react';
+
+import {FrogSvg, SnakeBodySVG, SnakeHeadSVG} from '../../assets';
+
+import {EObjectType, type TObjectFieldBlock} from '../../objects/types.ts';
+
+import {SCell, SFoodCell, SSnakeCell} from './styled.ts';
 
 function getSnakeCellByType(cell: Required<TObjectFieldBlock>) {
     if (cell.blockType === 'head') return <SnakeHeadSVG />;

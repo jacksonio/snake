@@ -1,57 +1,61 @@
 import React, {FC, Fragment, useEffect, useState} from 'react';
 
 import {Field as FieldObject} from '../../objects';
+import {MODES} from '../App/consts.ts';
+import {allowedKeyCodes, hashMap} from './consts.ts';
+import {getCellByType} from './helpers.tsx';
+
+import type {TMode} from '../App/types.ts';
+import type {TCodes} from './types.ts';
 
 import {SFieldContainer, SFieldRow, SFieldWrapper} from './styled.ts';
-import {EControlKeys} from './types.ts';
-import {allowedKeys, hashMap} from './consts.ts';
-import {getCellByType} from './helpers.tsx';
 
 const field = new FieldObject(10, 10);
 
 interface IFieldProps {
     onSnakeCollapse: () => void;
+    mode: TMode;
 }
 
-const FieldComponent: FC<IFieldProps> = ({onSnakeCollapse}) => {
+const FieldComponent: FC<IFieldProps> = ({onSnakeCollapse, mode}) => {
     const [fieldCells, setFieldCells] = useState(() => field.generate());
 
     useEffect(() => {
         const intervalId = setInterval(() => {
             const updatedFieldCells = field.update();
 
-            // field.checkCollapse();
-            //
-            // if (field.checkCollapse()) onSnakeCollapse();
+            if (field.checkCollapse()) onSnakeCollapse();
 
             setFieldCells(updatedFieldCells);
-        }, 2000);
+        }, MODES[mode]);
 
         const setDirectionHandler = (e: KeyboardEvent) => {
-            if (!allowedKeys.includes(e.key as EControlKeys)) return;
+            if (!allowedKeyCodes.includes(e.code as TCodes)) return;
 
-            field.setSnakeDirection(hashMap[e.key as keyof typeof hashMap]);
+            field.setSnakeDirection(hashMap[e.code as TCodes]);
         };
 
         document.addEventListener('keydown', setDirectionHandler);
 
         return () => {
+            field.setSnakeDirection('Right');
+
             clearInterval(intervalId);
+
             document.removeEventListener('keydown', setDirectionHandler);
         }
-    }, [onSnakeCollapse]);
+    }, [mode, onSnakeCollapse]);
 
     return (
         <SFieldWrapper>
             <SFieldContainer>
-                {fieldCells.map((row, i) => {
-                    return (
-                        <SFieldRow key={i}>
-                            {row.map((cell) => <Fragment key={cell.id}>{getCellByType(cell)}</Fragment>
-                            )}
-                        </SFieldRow>
-                    )
-                })}
+                {fieldCells.map((row, i) => (
+                    <SFieldRow key={i}>
+                        {row.map((cell) => (
+                            <Fragment key={cell.id}>{getCellByType(cell)}</Fragment>
+                        ))}
+                    </SFieldRow>
+                ))}
             </SFieldContainer>
         </SFieldWrapper>
     );

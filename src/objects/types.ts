@@ -8,18 +8,16 @@ export interface IObjectBlock {
     y: number;
 }
 
-export type TSnakeBlockType = 'head' | 'body';
-
 export interface IObjectSnakeBlock extends IObjectBlock {
     blockType: TSnakeBlockType;
 }
 
-export enum EObjectType {
-    FIELD, SNAKE, FOOD
-}
+export type TSnakeBlockType = 'head' | 'body';
 
 export type TObjectFieldBlock = { objectType: EObjectType, id: string, blockType?: TSnakeBlockType };
 
-export enum EDirection {
-    TOP, LEFT, RIGHT, BOTTOM
+export type TDirection = 'Top' | 'Left' | 'Right' | 'Bottom';
+
+export enum EObjectType {
+    FIELD, SNAKE, FOOD
 }

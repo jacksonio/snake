@@ -1,11 +1,11 @@
-import {EControlKeys} from './types.ts';
-import {EDirection} from '../../objects/types.ts';
+import type {TCodes} from './types.ts';
+import type {TDirection} from '../../objects/types.ts';
 
-export const hashMap = {
-    [EControlKeys.W]: EDirection.TOP,
-    [EControlKeys.A]: EDirection.LEFT,
-    [EControlKeys.D]: EDirection.RIGHT,
-    [EControlKeys.S]: EDirection.BOTTOM,
+export const hashMap: Record<TCodes, TDirection> = {
+    KeyW: 'Top',
+    KeyA: 'Left',
+    KeyD: 'Right',
+    KeyS: 'Bottom',
 };
 
-export const allowedKeys = [EControlKeys.W, EControlKeys.A, EControlKeys.S, EControlKeys.D];
+export const allowedKeyCodes: TCodes[] = ['KeyW', 'KeyA', 'KeyS', 'KeyD'];

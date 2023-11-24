@@ -1,6 +1,1 @@
-export const enum EControlKeys {
-    W = 'w',
-    A = 'a',
-    S = 's',
-    D = 'd',
-}
+export type TCodes = 'KeyW' | 'KeyA' | 'KeyS' | 'KeyD';
